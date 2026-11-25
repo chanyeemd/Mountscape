@@ -693,5 +693,25 @@
 
     init();
   </script>
+<!-- ================= 測試專用時間與範圍覆蓋區（正式上線前把整段刪掉即可） ================= -->
+<script>
+  // 1. 測試時間覆蓋（11/25 - 11/26 開放上傳，11/25 - 11/28 開放投票）
+  CONFIG.UPLOAD_START  = '2026-11-25T00:00:00+08:00';
+  CONFIG.UPLOAD_END    = '2026-11-26T23:59:59+08:00';
+  CONFIG.VOTE_START    = '2026-11-25T00:00:00+08:00';
+  CONFIG.VOTE_END      = '2026-11-28T00:00:00+08:00';
+  CONFIG.HIDE_VOTES_AT = '2026-11-27T00:00:00+08:00';
+
+  // 2. 測試地理範圍覆蓋（嘉義市啟明路146號為圓心，半徑 10 公里 = 10000 公尺）
+  CONFIG.VENUE_LAT            = 23.4815;
+  CONFIG.VENUE_LNG            = 120.4631;
+  CONFIG.MAX_DISTANCE_METERS  = 10000;
+
+  // 若頁面上有狀態文字在載入時已先執行，重新觸發一次畫面更新
+  if (typeof renderUI === 'function') renderUI();
+  if (typeof checkActivityStatus === 'function') checkActivityStatus();
+</script>
+<!-- ======================================================================================== -->
+  
 </body>
 </html>
