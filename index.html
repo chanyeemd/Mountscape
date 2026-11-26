@@ -1,246 +1,250 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>山樣子美食基地｜聖誕市集穿搭票選</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>山樣子美食基地｜聖誕 Dress Code 穿搭大賞</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Noto Sans TC', sans-serif; background-color: #faf7f2; color: #2c2520; }
-    .card-shadow { box-shadow: 0 10px 25px -5px rgba(44, 37, 32, 0.08); }
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    body { font-family: 'Noto Sans TC', sans-serif; background-color: #faf7f2; }
+    .masonry-grid { column-count: 2; column-gap: 1rem; }
+    @media (min-width: 768px) { .masonry-grid { column-count: 3; column-gap: 1.25rem; } }
+    .masonry-item { break-inside: avoid; margin-bottom: 1rem; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="text-stone-800 pb-24">
 
-  <!-- LINE / IG 內建瀏覽器警告遮罩 -->
-  <div id="inapp-warning" class="hidden fixed inset-0 z-50 bg-black/85 text-white flex flex-col items-center justify-center p-6 text-center">
-    <div class="bg-white text-stone-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-      <div class="text-4xl mb-3">🧭</div>
-      <h2 class="text-xl font-bold mb-2 text-red-700">請切換至外部瀏覽器</h2>
-      <p class="text-sm text-stone-600 leading-relaxed mb-4">
-        偵測到您正在使用 <strong>LINE 或社群 App 內建瀏覽器</strong>，系統將無法進行 Google 帳號安全登入。
-      </p>
-      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-left text-xs text-stone-700 space-y-1.5 mb-4">
-        <p><strong>iPhone 用戶：</strong>點擊畫面右下角 <span class="px-1.5 py-0.5 bg-stone-200 rounded font-bold">•••</span> → 選擇「以預設瀏覽器開啟（Safari）」</p>
-        <p><strong>Android 用戶：</strong>點擊畫面右上角 <span class="px-1.5 py-0.5 bg-stone-200 rounded font-bold">⋮</span> → 選擇「以 Chrome 開啟」</p>
-      </div>
-      <button onclick="copyPageUrl()" class="w-full py-2.5 bg-stone-900 text-white rounded-xl text-sm font-medium active:scale-95 transition">
-        複製活動網址
-      </button>
-    </div>
+  <!-- ==================== 活動設定區 ==================== -->
+  <script>
+    const CONFIG = {
+      SUPABASE_URL: 'https://busztrwndoxlltqrftuf.supabase.co',
+      SUPABASE_ANON_KEY: 'sb_publishable_291SlLjCiXN6GF14lhjXvg_7WtT2rIc',
+      
+      // 山樣子美食基地中心點經緯度
+      VENUE_LAT: 23.4810,
+      VENUE_LNG: 120.4536,
+      MAX_RADIUS_METERS: 1000,       // 允許上傳半徑：1 公里（1000 公尺）
+      STAFF_BYPASS_CODE: 'XMAS2027', // 現場工作人員救火通關碼
+      ADMIN_PASSWORD: 'MOUNT2027',   // 審核後台登入密碼（網址加 #admin 進入）
+      FB_PAGE_URL: 'https://www.facebook.com/MountScapeSquare/',
+
+      // 活動時間軸（統一以台灣時間 UTC+8 為準）
+      UPLOAD_START: '2026-12-26T00:00:00+08:00',
+      UPLOAD_END:   '2026-12-27T23:59:59+08:00',
+      VOTE_START:   '2026-12-26T00:00:00+08:00',
+      VOTE_END:     '2027-01-01T23:59:59+08:00'
+    };
+  </script>
+
+  <!-- LINE / FB / IG 內建瀏覽器提示遮罩 -->
+  <div id="inAppWarning" class="hidden fixed inset-0 z-50 bg-black/85 text-white flex flex-col items-center justify-center p-6 text-center">
+    <div class="text-5xl mb-4">↗️</div>
+    <h2 class="text-xl font-bold mb-2">請使用外部瀏覽器開啟</h2>
+    <p class="text-sm text-stone-300 leading-relaxed max-w-xs">
+      偵測到您正使用 LINE 或社群 App 內建瀏覽器，Google 安全政策將無法在此環境進行帳號登入。<br><br>
+      請點擊畫面右上角或右下角的 <span class="text-amber-400 font-bold">「⋯」或分享圖示</span>，選擇 <span class="text-amber-400 font-bold">「使用預設瀏覽器 / Safari / Chrome 開啟」</span>。
+    </p>
   </div>
 
   <!-- 頂部導覽列 -->
-  <header class="sticky top-0 z-30 bg-[#faf7f2]/95 backdrop-blur border-b border-stone-200/80">
-    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <span class="w-8 h-8 rounded-full bg-red-800 text-amber-100 flex items-center justify-center font-black text-sm">山</span>
-        <div>
-          <h1 class="font-bold text-base tracking-wide text-stone-900 leading-tight">山樣子美食基地</h1>
-          <p class="text-[11px] text-stone-500">聖誕派對穿搭大賞</p>
-        </div>
+  <header class="sticky top-0 z-30 bg-red-800 text-white shadow-md">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="font-black tracking-wide text-base sm:text-lg flex items-center gap-2">
+        <span>🎄</span>
+        <span>山樣子美食基地｜聖誕派對</span>
       </div>
-
-      <div id="auth-area" class="flex items-center gap-2">
-        <button id="btn-google-login" onclick="signInWithGoogle()" class="flex items-center gap-2 bg-white hover:bg-stone-50 text-stone-800 border border-stone-300 px-3.5 py-2 rounded-full text-xs font-bold shadow-sm transition active:scale-95">
+      <div id="authArea">
+        <button onclick="loginWithGoogle()" class="bg-white hover:bg-stone-100 text-stone-800 text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-full shadow flex items-center gap-1.5 transition">
           <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/></svg>
-          Google 登入
+          <span>Google 登入</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- 主內容區 -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
-    <!-- 活動規則與狀態橫幅 -->
-    <section class="bg-gradient-to-br from-red-900 via-red-800 to-stone-900 text-amber-50 rounded-3xl p-6 mb-6 shadow-lg relative overflow-hidden">
-      <div class="relative z-10">
-        <span class="inline-block px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-200 text-xs font-medium mb-3">
-          2026 聖誕市集特別企劃
-        </span>
-        <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">穿出你的山樣子聖誕風格</h2>
-        <p class="text-sm text-amber-100/85 leading-relaxed mb-5 max-w-2xl">
-          於市集現場拍下你的聖誕 Dress Code 穿搭並上傳參賽，邀請親朋好友線上應援，角逐人氣大獎。
-        </p>
+  <!-- 主內容容器 -->
+  <main class="max-w-5xl mx-auto px-4 pt-4">
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-black/25 rounded-2xl p-4 border border-white/10 mb-5">
-          <div>
-            <p class="text-amber-300 font-bold mb-1">📸 現場投稿時間（限園區 1 公里內）</p>
-            <p class="text-white/90">2026/12/26 00:00 ～ 12/27 23:59</p>
-            <p class="text-white/60 mt-0.5">投稿後需經主辦方審核通過方公開顯示</p>
-          </div>
-          <div>
-            <p class="text-amber-300 font-bold mb-1">❤️ 全台線上投票（不限地點）</p>
-            <p class="text-white/90">2026/12/26 00:00 ～ 2027/01/01 23:59</p>
-            <p class="text-white/60 mt-0.5">每 Google 帳號每日限 1 票｜單一裝置每日限 5 票</p>
-          </div>
-        </div>
+    <!-- 活動主視覺 Banner (建議尺寸：1200 x 600 px / 2:1 比例，檔名 banner.jpg) -->
+    <div class="w-full aspect-[2/1] bg-gradient-to-r from-red-900 via-red-800 to-emerald-900 rounded-2xl overflow-hidden shadow-lg mb-4 relative flex items-center justify-center">
+      <img src="banner.jpg" alt="山樣子美食基地聖誕市集 Dress Code" class="w-full h-full object-cover"
+           onerror="this.style.display='none'; document.getElementById('bannerFallback').classList.remove('hidden');" />
+      <div id="bannerFallback" class="hidden text-center text-white p-6">
+        <p class="text-xs tracking-widest uppercase text-amber-300 mb-1">MOUNT SCAPE SQUARE CHRISTMAS</p>
+        <h1 class="text-2xl sm:text-4xl font-black mb-2">聖誕市集 Dress Code 穿搭大賞</h1>
+        <p class="text-xs sm:text-sm text-stone-200">12/26 - 12/27 現場拍照上傳｜投票至 2027/1/1 23:59 止</p>
+      </div>
+    </div>
 
-        <div class="flex flex-wrap gap-3">
-          <button onclick="openSubmitModal()" class="bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold px-5 py-2.5 rounded-full text-sm shadow transition active:scale-95">
-            + 我要報名上傳穿搭
-          </button>
-          <div id="user-quota-badge" class="hidden items-center px-4 py-2 rounded-full bg-white/15 text-xs text-amber-100">
-            載入今日投票狀態中...
-          </div>
-        </div>
+    <!-- 活動狀態資訊條 -->
+    <div id="statusBanner" class="bg-white border border-stone-200 rounded-xl p-3.5 mb-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
+      <div id="eventStatusText" class="font-medium text-stone-700">載入活動狀態中...</div>
+      <div id="userVoteStatus" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full self-start sm:self-auto">
+        登入 Google 每天可投 1 票
+      </div>
+    </div>
+
+    <!-- 功能切換標籤（前台瀑布流 / 審核後台） -->
+    <div id="adminBanner" class="hidden bg-amber-100 border border-amber-400 text-amber-900 p-3 rounded-xl mb-4 flex items-center justify-between">
+      <span class="font-bold text-sm">🛠️ 管理員審核模式已開啟</span>
+      <button onclick="exitAdmin()" class="text-xs bg-amber-800 text-white px-3 py-1 rounded-lg">返回前台</button>
+    </div>
+
+    <!-- ==================== 前台視圖：瀑布流投票牆 ==================== -->
+    <section id="gallerySection">
+      <!-- 專屬拉票置頂區塊（當網址帶有 ?id=xxx 時顯示） -->
+      <div id="featuredEntryContainer" class="hidden mb-6"></div>
+
+      <!-- 瀑布流列表 -->
+      <div id="entriesGrid" class="masonry-grid"></div>
+      <div id="emptyState" class="hidden text-center py-16 text-stone-400">
+        <p class="text-4xl mb-2">🎅</p>
+        <p class="font-medium">目前還沒有通過審核的穿搭照片，快來搶頭香！</p>
       </div>
     </section>
 
-    <!-- 排序與搜尋列 -->
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-      <div class="flex items-center gap-2">
-        <button id="sort-votes" onclick="setSort('votes')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-stone-900 text-white transition">
-          🔥 最高人氣
-        </button>
-        <button id="sort-latest" onclick="setSort('latest')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-stone-700 border border-stone-200 transition">
-          🕒 最新上架
-        </button>
+    <!-- ==================== 後台視圖：照片審核區 ==================== -->
+    <section id="adminSection" class="hidden">
+      <div class="flex gap-2 mb-4">
+        <button onclick="loadAdminEntries('pending')" class="bg-amber-600 text-white text-sm font-bold px-4 py-2 rounded-lg">待審核</button>
+        <button onclick="loadAdminEntries('approved')" class="bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg">已通過</button>
+        <button onclick="loadAdminEntries('rejected')" class="bg-stone-600 text-white text-sm font-bold px-4 py-2 rounded-lg">已退回</button>
       </div>
-      <p id="entries-count" class="text-xs text-stone-500">載入參賽作品中...</p>
-    </div>
-
-    <!-- 作品展示網格 -->
-    <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      <!-- 動態載入卡片 -->
-    </div>
-
-    <!-- 管理員審核後台區塊 (#admin) -->
-    <section id="admin-panel" class="hidden mt-12 bg-white border-2 border-red-800/30 rounded-3xl p-6 shadow-xl">
-      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 mb-5 border-b border-stone-200">
-        <div>
-          <span class="text-xs font-bold text-red-700 uppercase tracking-wider">Admin Console</span>
-          <h3 class="text-xl font-black text-stone-900">山樣子活動管理後台</h3>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <button id="btn-toggle-gps" onclick="toggleGpsBypass()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-            GPS 1公里限制：開啟中
-          </button>
-          <button onclick="exportCsv()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-900 text-white hover:bg-stone-800">
-            匯出 CSV 名單
-          </button>
-          <button onclick="exitAdmin()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-100 text-stone-600">
-            關閉後台
-          </button>
-        </div>
-      </div>
-
-      <div id="admin-entries-list" class="space-y-3">
-        <!-- 後台審核列表 -->
-      </div>
+      <div id="adminList" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
     </section>
+
   </main>
 
-  <!-- 報名上傳彈窗 -->
-  <div id="submit-modal" class="hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-black text-stone-900">報名上傳聖誕穿搭</h3>
-        <button onclick="closeSubmitModal()" class="w-8 h-8 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-bold">✕</button>
+  <!-- 底部懸浮按鈕：我要報名上傳 -->
+  <div id="floatingUploadBar" class="fixed bottom-4 inset-x-0 px-4 z-20 flex justify-center pointer-events-none">
+    <button onclick="openUploadModal()" class="pointer-events-auto bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 text-white font-bold px-6 py-3.5 rounded-full shadow-xl flex items-center gap-2 text-sm sm:text-base transition transform active:scale-95">
+      <span>📸</span>
+      <span id="uploadBtnLabel">現場穿搭報名上傳</span>
+    </button>
+  </div>
+
+  <!-- ==================== 彈窗 1：現場上傳報名表單 ==================== -->
+  <div id="uploadModal" class="hidden fixed inset-0 z-40 bg-black/70 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative my-8">
+      <button onclick="closeModal('uploadModal')" class="absolute top-4 right-4 text-stone-400 hover:text-stone-700 text-xl font-bold">✕</button>
+      <h2 class="text-xl font-black text-red-800 mb-1">🎄 聖誕 Dress Code 報名</h2>
+      <p class="text-xs text-stone-500 mb-4">每人限投稿 1 張照片，審核通過後即公開開放親友投票！</p>
+
+      <!-- 定位驗證狀態框 -->
+      <div id="geoCheckBox" class="bg-stone-100 rounded-xl p-3.5 mb-4 text-sm">
+        <div id="geoStatusMsg" class="font-medium text-stone-700">📍 正在確認您是否位於山樣子美食基地 1 公里範圍內...</div>
+        <!-- 定位失敗時的現場救火通關碼輸入區 -->
+        <div id="staffBypassBox" class="hidden mt-3 pt-3 border-t border-stone-200">
+          <p class="text-xs text-stone-500 mb-2">定位無法取得？請洽市集服務台人員輸入現場通關碼：</p>
+          <div class="flex gap-2">
+            <input type="text" id="bypassInput" placeholder="輸入現場通關碼" class="border border-stone-300 rounded-lg px-3 py-1.5 text-sm w-full uppercase" />
+            <button type="button" onclick="verifyBypassCode()" class="bg-stone-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap">驗證</button>
+          </div>
+        </div>
       </div>
 
-      <form id="submit-form" onsubmit="handleEntrySubmit(event)" class="space-y-4">
+      <!-- 報名表單（定位通過後解鎖） -->
+      <form id="entryForm" onsubmit="submitEntry(event)" class="hidden space-y-3.5">
         <div>
-          <label class="block text-xs font-bold text-stone-700 mb-1">穿搭照片（自動壓縮優化）*</label>
-          <input type="file" id="entry-photo" accept="image/*" required onchange="previewPhoto(event)" class="block w-full text-xs text-stone-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-red-800 hover:file:bg-red-100" />
-          <img id="photo-preview" class="hidden mt-3 w-full h-56 object-cover rounded-2xl border border-stone-200" />
+          <label class="block text-xs font-bold text-stone-700 mb-1">參賽暱稱（將公開顯示於照片下方）*</label>
+          <input type="text" id="authorName" required maxlength="20" placeholder="例如：聖誕小精靈" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">聯絡電話（僅供得獎通知使用，絕不公開）*</label>
+          <input type="tel" id="authorPhone" required placeholder="例如：0912345678" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">穿搭宣言 / 聖誕祝福（選填）</label>
+          <input type="text" id="entryCaption" maxlength="50" placeholder="寫一句拉票宣言吧！" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">選擇現場自拍照（需符合 Dress Code）*</label>
+          <input type="file" id="photoFile" accept="image/*" required onchange="previewImage(event)" class="w-full text-xs text-stone-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" />
+          <img id="imagePreview" class="hidden mt-2 w-full max-h-48 object-contain rounded-lg border border-stone-200 bg-stone-50" />
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-stone-700 mb-1">參賽者暱稱 / 姓名 *</label>
-          <input type="text" id="entry-name" required maxlength="30" placeholder="例如：嘉義小聖誕" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-red-800" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-stone-700 mb-1">聯絡電話（僅供得獎通知，不公開）*</label>
-          <input type="tel" id="entry-phone" required pattern="[0-9\-+\s]{8,15}" placeholder="例如：0912345678" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-red-800" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-stone-700 mb-1">穿搭理念或聖誕宣言（選填）</label>
-          <textarea id="entry-desc" rows="2" maxlength="100" placeholder="寫下你的聖誕穿搭亮點..." class="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-red-800"></textarea>
-        </div>
-
-        <label class="flex items-start gap-2 text-xs text-stone-600 cursor-pointer">
-          <input type="checkbox" required class="mt-0.5 rounded text-red-800" />
-          <span>我確認本照片於嘉義山樣子美食基地現場拍攝，且同意主辦單位無償用於本活動及後續社群宣傳使用。</span>
+        <!-- 強制勾選肖像權行銷授權 -->
+        <label class="flex items-start gap-2 bg-amber-50 p-3 rounded-lg border border-amber-200 cursor-pointer">
+          <input type="checkbox" id="marketingConsent" required class="mt-0.5 accent-red-700" />
+          <span class="text-xs text-stone-700 leading-relaxed">
+            我同意授權<strong>「山樣子美食基地」</strong>將本次上傳之照片無償使用於官方社群平台、網站及後續品牌行銷宣傳活動。*
+          </span>
         </label>
 
-        <div id="submit-status" class="hidden text-xs p-3 rounded-xl bg-amber-50 text-amber-900"></div>
-
-        <button type="submit" id="btn-submit-entry" class="w-full py-3 bg-red-800 hover:bg-red-900 text-white font-bold rounded-xl text-sm shadow transition">
-          確認定位並送出審核
+        <button type="submit" id="submitBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow transition">
+          確認送出參賽
         </button>
       </form>
+
+      <!-- 若該帳號已投稿過，顯示個人狀態與專屬拉票連結 -->
+      <div id="alreadySubmittedBox" class="hidden text-center py-2">
+        <div class="text-3xl mb-2">🎉</div>
+        <h3 class="font-bold text-base mb-1">你已完成報名投稿！</h3>
+        <p id="myEntryStatusText" class="text-xs text-stone-600 mb-4"></p>
+        <div class="bg-stone-100 p-3 rounded-xl mb-3">
+          <p class="text-xs text-stone-500 mb-1">你的專屬拉票連結（親友點開會自動置頂）：</p>
+          <input type="text" id="myShareUrl" readonly class="w-full bg-white border border-stone-300 rounded px-2 py-1.5 text-xs text-center font-mono mb-2" />
+          <button onclick="copyShareUrl()" class="w-full bg-red-700 text-white text-xs font-bold py-2 rounded-lg">複製專屬拉票連結</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <footer class="py-6 text-center text-xs text-stone-400 border-t border-stone-200/60 mt-10">
-    © 2026 山樣子美食基地（嘉義市東區大雅路一段730號）｜所有活動時間均以台灣標準時間 (UTC+8) 為準
-  </footer>
+  <!-- ==================== 彈窗 2：投票成功 + 引導追蹤粉專 ==================== -->
+  <div id="voteSuccessModal" class="hidden fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+      <div class="text-5xl mb-3">🎁</div>
+      <h3 class="text-xl font-black text-stone-800 mb-2">投票成功！感謝你的支持</h3>
+      <p class="text-sm text-stone-600 leading-relaxed mb-5">
+        提醒你：<strong>12/26 至 1/1 23:59 期間，每天都能登入投 1 票！</strong><br>
+        歡迎追蹤「山樣子美食基地」官方粉絲專頁，掌握市集最新優惠與開獎公告！
+      </p>
+      <a href="https://www.facebook.com/MountScapeSquare/" target="_blank" rel="noopener noreferrer"
+         class="block w-full bg-[#1877F2] hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md mb-2.5 transition">
+        👍 前往追蹤山樣子美食基地粉專
+      </a>
+      <button onclick="closeModal('voteSuccessModal')" class="w-full text-xs text-stone-400 hover:text-stone-600 py-2">
+        先不用，返回繼續逛逛
+      </button>
+    </div>
+  </div>
 
   <script>
-    // ================= 1. 系統設定與常數（台灣時間 UTC+8） =================
-    const SUPABASE_URL = 'https://busztrwndoxlltqrftuf.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // <-- 請替換為原本的 anon public key
-    const STORAGE_BUCKET = 'entries'; // 若原本儲存桶名稱不同請維持原名
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // 嘉義山樣子美食基地座標（嘉義市東區大雅路一段730號）與 1 公里圍欄
-    const VENUE_LAT = 23.4815;
-    const VENUE_LNG = 120.4718;
-    const MAX_RADIUS_KM = 1.0;
-
-    // 活動時間區間（強制台灣時間 +08:00）
-    const SUBMIT_START = new Date('2026-12-26T00:00:00+08:00').getTime();
-    const SUBMIT_END   = new Date('2026-12-27T23:59:59+08:00').getTime();
-    const VOTE_START   = new Date('2026-12-26T00:00:00+08:00').getTime();
-    const VOTE_END     = new Date('2027-01-01T23:59:59+08:00').getTime();
-
+    const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
     let currentUser = null;
-    let currentSort = 'votes';
-    let allEntries = [];
-    let isAdminAuthenticated = false;
-    let bypassGpsCheck = false;
+    let userEntry = null;
+    let votedToday = false;
+    let locationVerified = false;
+    let isAdmin = false;
 
-    // ================= 2. 瀏覽器環境、無痕偵測與裝置指紋 =================
-    function detectInAppBrowser() {
+    // 1. 偵測 LINE / FB / IG 內建瀏覽器
+    (function checkInAppBrowser() {
       const ua = navigator.userAgent || navigator.vendor || window.opera;
       if (/Line\/|FBAN|FBAV|Instagram/i.test(ua)) {
-        document.getElementById('inapp-warning').classList.remove('hidden');
+        document.getElementById('inAppWarning').classList.remove('hidden');
       }
-    }
+    })();
 
-    function copyPageUrl() {
-      navigator.clipboard.writeText(window.location.href);
-      alert('已複製活動網址，請貼上至 Safari 或 Chrome 開啟！');
-    }
-
-    // 偵測無痕 / 私密瀏覽模式（不會誤傷一般使用者）
+    // 無痕 / 私密瀏覽模式偵測（不會誤殺一般正常視窗）
     async function isIncognitoMode() {
       try {
         if ('storage' in navigator && 'estimate' in navigator.storage) {
           const { quota } = await navigator.storage.estimate();
-          // 無痕模式下瀏覽器配額通常會被壓縮至 120MB 以下，一般模式為數十 GB
           if (quota && quota < 120 * 1024 * 1024) {
             return true;
           }
         }
       } catch (e) {
-        return false; // 異常時預設放行，絕不誤殺
+        return false;
       }
       return false;
     }
 
-    // 產生裝置指紋（桌機/筆電採跨瀏覽器硬體特徵，手機採本地UUID+基礎特徵避免同型號iPhone誤判）
+    // 裝置指紋產生器（桌機/筆電採跨瀏覽器硬體特徵；手機/平板採本地持久標記＋螢幕特徵避免同型號 iPhone 互撞）
     async function getDeviceFingerprint() {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      let rawSeed = '';
-
-      // 取得 Canvas 渲染特徵
       let canvasHash = '';
       try {
         const canvas = document.createElement('canvas');
@@ -251,8 +255,8 @@
         canvasHash = canvas.toDataURL().slice(-40);
       } catch (e) {}
 
+      let rawSeed = '';
       if (!isMobile) {
-        // 電腦與筆電：硬體特徵跨瀏覽器一致，防 Chrome/Edge/Safari 切換刷票
         rawSeed = [
           navigator.platform,
           screen.width + 'x' + screen.height,
@@ -262,10 +266,9 @@
           canvasHash
         ].join('|');
       } else {
-        // 手機與平板：本地持久 UUID 搭配螢幕特徵，避免現場同款 iPhone 路人互撞
         let localUid = localStorage.getItem('ms_device_uid');
         if (!localUid) {
-          localUid = 'm_' + crypto.randomUUID();
+          localUid = 'm_' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now());
           localStorage.setItem('ms_device_uid', localUid);
         }
         rawSeed = [localUid, screen.width + 'x' + screen.height, canvasHash].join('|');
@@ -277,465 +280,489 @@
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
     }
 
-    // 取得台灣時間今日字串 YYYY-MM-DD
-    function getTaiwanDateString() {
-      return new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Taipei',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).format(new Date());
+    // 2. 台灣時間 (UTC+8) 狀態計算
+    function getTimeState() {
+      const now = new Date();
+      const uploadStart = new Date(CONFIG.UPLOAD_START);
+      const uploadEnd   = new Date(CONFIG.UPLOAD_END);
+      const voteStart   = new Date(CONFIG.VOTE_START);
+      const voteEnd     = new Date(CONFIG.VOTE_END);
+
+      const twDateStr = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).format(now);
+
+      return {
+        now,
+        twDateStr,
+        canUpload: now >= uploadStart && now <= uploadEnd,
+        beforeStart: now < uploadStart,
+        canVote: now >= voteStart && now <= voteEnd,
+        eventEnded: now > voteEnd
+      };
     }
 
-    // ================= 3. Google 登入驗證 =================
-    async function signInWithGoogle() {
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + window.location.pathname
+    // 初始化頁面
+    async function init() {
+      updateTimeBanner();
+
+      // 檢查網址是否為 #admin
+      if (window.location.hash === '#admin') {
+        const pwd = prompt('請輸入管理員審核密碼：');
+        if (pwd === CONFIG.ADMIN_PASSWORD) {
+          isAdmin = true;
+          document.getElementById('adminBanner').classList.remove('hidden');
+          document.getElementById('gallerySection').classList.add('hidden');
+          document.getElementById('adminSection').classList.remove('hidden');
+          document.getElementById('floatingUploadBar').classList.add('hidden');
+          loadAdminEntries('pending');
+          return;
+        } else {
+          alert('密碼錯誤');
+          window.location.hash = '';
         }
-      });
-      if (error) alert('登入啟動失敗：' + error.message);
+      }
+
+      // 取得目前登入狀態
+      const { data: { session } } = await sb.auth.getSession();
+      if (session?.user) {
+        currentUser = session.user;
+        renderUserHeader();
+        await checkUserStatus();
+      }
+
+      await loadGallery();
     }
 
-    async function signOut() {
-      await supabaseClient.auth.signOut();
+    function updateTimeBanner() {
+      const state = getTimeState();
+      const statusEl = document.getElementById('eventStatusText');
+      const uploadBtnLabel = document.getElementById('uploadBtnLabel');
+
+      if (state.beforeStart) {
+        statusEl.innerHTML = '⏳ 活動將於 <strong>2026/12/26 00:00</strong> 正式開跑，敬請期待！';
+      } else if (state.canUpload) {
+        statusEl.innerHTML = '🔥 <strong>市集現場報名 & 投票火熱進行中！</strong>（投稿至 12/27 23:59 止）';
+      } else if (state.canVote) {
+        statusEl.innerHTML = '📣 <strong>線上拉票投票火熱進行中！</strong>（投票至 2027/1/1 23:59 截止）';
+        uploadBtnLabel.textContent = userEntry ? '查看我的參賽與拉票連結' : '報名已截止（僅開放投票）';
+      } else {
+        statusEl.innerHTML = '🏁 <strong>活動已於 2027/1/1 23:59 圓滿截止</strong>，感謝大家的熱情參與！';
+        document.getElementById('floatingUploadBar').classList.add('hidden');
+      }
+    }
+
+    // Google 登入 / 登出
+    async function loginWithGoogle() {
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) alert('登入發生錯誤：' + error.message);
+    }
+
+    async function logout() {
+      await sb.auth.signOut();
       window.location.reload();
     }
 
-    async function initAuth() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      currentUser = session?.user || null;
-      renderAuthUI();
-      if (currentUser) updateQuotaBadge();
-
-      supabaseClient.auth.onAuthStateChange((_event, session) => {
-        currentUser = session?.user || null;
-        renderAuthUI();
-        if (currentUser) updateQuotaBadge();
-      });
+    function renderUserHeader() {
+      const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || '參賽者';
+      const avatar = currentUser.user_metadata?.avatar_url || '';
+      document.getElementById('authArea').innerHTML = `
+        <div class="flex items-center gap-2">
+          ${avatar ? `<img src="${avatar}" class="w-7 h-7 rounded-full border border-white/50">` : ''}
+          <span class="text-xs font-medium hidden sm:inline">${escapeHtml(name)}</span>
+          <button onclick="logout()" class="text-xs bg-red-950/60 hover:bg-red-950 px-2.5 py-1 rounded-full">登出</button>
+        </div>
+      `;
     }
 
-    function renderAuthUI() {
-      const authArea = document.getElementById('auth-area');
-      if (currentUser) {
-        const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || '已登入';
-        authArea.innerHTML = `
-          <span class="text-xs font-bold text-stone-700 hidden sm:inline">Hi, ${escapeHtml(name)}</span>
-          <button onclick="signOut()" class="px-3 py-1.5 rounded-full bg-stone-200/80 hover:bg-stone-300 text-stone-700 text-xs font-medium">登出</button>
-        `;
+    // 檢查用戶是否已投稿 & 今天是否已投票
+    async function checkUserStatus() {
+      const { twDateStr } = getTimeState();
+
+      // 1. 查是否已投稿
+      const { data: entry } = await sb
+        .from('entries')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      userEntry = entry;
+
+      if (userEntry) {
+        document.getElementById('uploadBtnLabel').textContent = '查看我的拉票連結';
       }
-    }
 
-    async function updateQuotaBadge() {
-      const badge = document.getElementById('user-quota-badge');
-      badge.classList.remove('hidden');
-      badge.classList.add('inline-flex');
-
-      const today = getTaiwanDateString();
-      const { data } = await supabaseClient
+      // 2. 查今日是否已投票
+      const { data: vote } = await sb
         .from('votes')
         .select('id')
         .eq('voter_id', currentUser.id)
-        .eq('vote_date', today);
+        .eq('vote_date', twDateStr)
+        .maybeSingle();
 
-      const used = data ? data.length : 0;
-      badge.textContent = used >= 1 ? '✅ 今日已完成投票（明日 00:00 重置）' : '🎟️ 今日尚有 1 票可用';
-    }
-
-    // ================= 4. GPS 距離計算與投稿流程 =================
-    function calculateDistanceKm(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) ** 2 +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) ** 2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
-
-    function verifyLocationWithinVenue() {
-      return new Promise((resolve, reject) => {
-        if (bypassGpsCheck) return resolve(true);
-        if (!navigator.geolocation) {
-          return reject('您的瀏覽器不支援 GPS 定位功能，無法驗證現場位置。');
-        }
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const dist = calculateDistanceKm(pos.coords.latitude, pos.coords.longitude, VENUE_LAT, VENUE_LNG);
-            if (dist <= MAX_RADIUS_KM) {
-              resolve(true);
-            } else {
-              reject(`目前距離山樣子美食基地約 ${dist.toFixed(2)} 公里，超出 1 公里投稿範圍，請於園區現場再行上傳！`);
-            }
-          },
-          () => reject('無法取得您的 GPS 位置，請允許瀏覽器存取位置權限後重試。'),
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      });
-    }
-
-    function openSubmitModal() {
-      if (!currentUser) {
-        alert('請先點擊右上角「Google 登入」後再報名上傳！');
-        return;
+      votedToday = !!vote;
+      const voteBadge = document.getElementById('userVoteStatus');
+      if (votedToday) {
+        voteBadge.textContent = `✅ 今日 (${twDateStr}) 已完成投票`;
+        voteBadge.className = 'text-xs font-bold text-stone-500 bg-stone-100 px-3 py-1 rounded-full';
+      } else {
+        voteBadge.textContent = `✨ 今日 (${twDateStr}) 尚有 1 票可投`;
       }
-      const now = Date.now();
-      if (now < SUBMIT_START || now > SUBMIT_END) {
-        alert('目前非投稿開放時間！\n投稿時間為台灣時間 2026/12/26 00:00 至 12/27 23:59。');
-        return;
-      }
-      document.getElementById('submit-modal').classList.remove('hidden');
+      updateTimeBanner();
     }
 
-    function closeSubmitModal() {
-      document.getElementById('submit-modal').classList.add('hidden');
-    }
+    // 載入瀑布流作品（僅顯示管理員審核通過 approved 的作品）
+    async function loadGallery() {
+      const state = getTimeState();
+      const urlParams = new URLSearchParams(window.location.search);
+      const featuredId = urlParams.get('id');
 
-    // 前端 Canvas 縮圖壓縮（最長邊 1200px，JPEG 0.8）
-    function compressImage(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const maxDim = 1200;
-            let { width, height } = img;
-            if (width > maxDim || height > maxDim) {
-              if (width > height) {
-                height = Math.round((height * maxDim) / width);
-                width = maxDim;
-              } else {
-                width = Math.round((width * maxDim) / height);
-                height = maxDim;
-              }
-            }
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            canvas.toBlob((blob) => {
-              if (blob) resolve(blob);
-              else reject(new Error('圖片壓縮失敗'));
-            }, 'image/jpeg', 0.8);
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function previewPhoto(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const preview = document.getElementById('photo-preview');
-      preview.src = URL.createObjectURL(file);
-      preview.classList.remove('hidden');
-    }
-
-    async function handleEntrySubmit(event) {
-      event.preventDefault();
-      const btn = document.getElementById('btn-submit-entry');
-      const statusBox = document.getElementById('submit-status');
-      btn.disabled = true;
-      statusBox.classList.remove('hidden');
-
-      try {
-        statusBox.textContent = '📍 正在驗證您是否位於山樣子美食基地 1 公里內...';
-        await verifyLocationWithinVenue();
-
-        statusBox.textContent = '🖼️ 正在壓縮優化照片並上傳...';
-        const fileInput = document.getElementById('entry-photo');
-        const compressedBlob = await compressImage(fileInput.files[0]);
-        const fileName = `${currentUser.id}_${Date.now()}.jpg`;
-
-        const { error: uploadError } = await supabaseClient.storage
-          .from(STORAGE_BUCKET)
-          .upload(fileName, compressedBlob, { contentType: 'image/jpeg' });
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabaseClient.storage
-          .from(STORAGE_BUCKET)
-          .getPublicUrl(fileName);
-
-        statusBox.textContent = '📝 正在送出報名資料...';
-        const { error: insertError } = await supabaseClient.from('entries').insert({
-          user_id: currentUser.id,
-          author_name: document.getElementById('entry-name').value.trim(),
-          phone: document.getElementById('entry-phone').value.trim(),
-          description: document.getElementById('entry-desc').value.trim(),
-          image_url: publicUrl,
-          avatar_url: currentUser.user_metadata?.avatar_url || '',
-          status: 'pending' // 預設待審核，前台不可見
-        });
-        if (insertError) throw insertError;
-
-        alert('🎉 報名成功！您的作品已送交主辦單位審核，審核通過後即會公開顯示於投票頁面。');
-        document.getElementById('submit-form').reset();
-        document.getElementById('photo-preview').classList.add('hidden');
-        closeSubmitModal();
-      } catch (err) {
-        alert(typeof err === 'string' ? err : (err.message || '送出失敗，請稍後再試'));
-      } finally {
-        btn.disabled = false;
-        statusBox.classList.add('hidden');
-      }
-    }
-
-    // ================= 5. 載入作品與投票防弊邏輯 =================
-    async function loadEntries() {
-      const { data: entries, error } = await supabaseClient
+      const { data: entries, error } = await sb
         .from('entries')
         .select('*')
+        .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error(error);
+      if (error || !entries || entries.length === 0) {
+        document.getElementById('emptyState').classList.remove('hidden');
         return;
       }
 
-      const { data: votes } = await supabaseClient
-        .from('votes')
-        .select('entry_id');
+      const grid = document.getElementById('entriesGrid');
+      const featuredContainer = document.getElementById('featuredEntryContainer');
+      grid.innerHTML = '';
 
-      const voteCounts = {};
-      (votes || []).forEach(v => {
-        voteCounts[v.entry_id] = (voteCounts[v.entry_id] || 0) + 1;
+      entries.forEach(item => {
+        const cardHtml = buildCardHtml(item, state, item.id === featuredId);
+        if (item.id === featuredId) {
+          featuredContainer.innerHTML = cardHtml;
+          featuredContainer.classList.remove('hidden');
+        } else {
+          grid.insertAdjacentHTML('beforeend', cardHtml);
+        }
       });
-
-      allEntries = (entries || []).map(item => ({
-        ...item,
-        vote_count: voteCounts[item.id] || 0
-      }));
-
-      renderGallery();
-      if (isAdminAuthenticated) renderAdminList();
     }
 
-    function setSort(mode) {
-      currentSort = mode;
-      document.getElementById('sort-votes').className = mode === 'votes'
-        ? 'px-4 py-1.5 rounded-full text-xs font-bold bg-stone-900 text-white transition'
-        : 'px-4 py-1.5 rounded-full text-xs font-bold bg-white text-stone-700 border border-stone-200 transition';
-      document.getElementById('sort-latest').className = mode === 'latest'
-        ? 'px-4 py-1.5 rounded-full text-xs font-bold bg-stone-900 text-white transition'
-        : 'px-4 py-1.5 rounded-full text-xs font-bold bg-white text-stone-700 border border-stone-200 transition';
-      renderGallery();
-    }
+    function buildCardHtml(item, state, isFeatured) {
+      const voteDisplay = `<span class="text-sm font-black text-red-700">${item.votes_count || 0} <span class="text-xs font-normal text-stone-500">票</span></span>`;
 
-    function renderGallery() {
-      const grid = document.getElementById('gallery-grid');
-      // 前台僅顯示已審核通過 (approved) 的作品
-      let visible = allEntries.filter(e => e.status === 'approved');
-
-      if (currentSort === 'votes') {
-        visible.sort((a, b) => b.vote_count - a.vote_count);
+      let btnHtml = '';
+      if (!state.canVote) {
+        btnHtml = `<button disabled class="w-full bg-stone-200 text-stone-500 text-xs font-bold py-2 rounded-xl">非投票時間</button>`;
+      } else if (votedToday) {
+        btnHtml = `<button disabled class="w-full bg-stone-200 text-stone-500 text-xs font-bold py-2 rounded-xl">今日已投票</button>`;
       } else {
-        visible.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        btnHtml = `<button onclick="castVote('${item.id}')" class="w-full bg-red-700 hover:bg-red-800 text-white text-xs sm:text-sm font-bold py-2 rounded-xl shadow-sm transition active:scale-95">❤️ 投他一票</button>`;
       }
 
-      document.getElementById('entries-count').textContent = `共 ${visible.length} 件參賽作品`;
-
-      if (visible.length === 0) {
-        grid.innerHTML = `
-          <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-stone-200/70">
-            <p class="text-stone-500 text-sm">目前尚無已審核公開的參賽作品，快來搶頭香上傳吧！</p>
-          </div>
-        `;
-        return;
-      }
-
-      grid.innerHTML = visible.map((item, idx) => `
-        <article class="bg-white rounded-3xl overflow-hidden card-shadow border border-stone-100 flex flex-col">
-          <div class="relative aspect-[4/5] bg-stone-100 overflow-hidden">
-            <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.author_name)}" loading="lazy" class="w-full h-full object-cover" />
-            ${currentSort === 'votes' && idx < 3 ? `<span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-amber-400 text-stone-950 font-black text-xs shadow">TOP ${idx + 1}</span>` : ''}
-          </div>
-          <div class="p-4 flex-1 flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between gap-2 mb-1">
-                <h3 class="font-bold text-base text-stone-900 truncate">${escapeHtml(item.author_name)}</h3>
-                <span class="text-xs font-black text-red-800 bg-red-50 px-2.5 py-1 rounded-full shrink-0">${item.vote_count} 票</span>
+      return `
+        <div class="${isFeatured ? 'max-w-md mx-auto ring-4 ring-amber-400' : 'masonry-item'} bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 flex flex-col">
+          ${isFeatured ? '<div class="bg-amber-400 text-amber-950 text-xs font-black text-center py-1">⭐ 親友推薦專屬拉票作品 ⭐</div>' : ''}
+          <img src="${item.image_url}" alt="${escapeHtml(item.author_name)}" loading="lazy" class="w-full h-auto object-cover bg-stone-100" />
+          <div class="p-3.5">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                ${item.avatar_url ? `<img src="${item.avatar_url}" class="w-5 h-5 rounded-full flex-shrink-0">` : ''}
+                <span class="font-bold text-sm truncate">${escapeHtml(item.author_name)}</span>
               </div>
-              <p class="text-xs text-stone-500 line-clamp-2 mb-4">${escapeHtml(item.description || '聖誕市集風格穿搭')}</p>
+              ${voteDisplay}
             </div>
-            <button onclick="castVote('${item.id}')" class="w-full py-2.5 rounded-xl bg-stone-900 hover:bg-red-800 text-white font-bold text-xs transition active:scale-95">
-              ❤️ 投他一票
-            </button>
+            ${item.caption ? `<p class="text-xs text-stone-600 mb-3 leading-relaxed">${escapeHtml(item.caption)}</p>` : '<div class="mb-2"></div>'}
+            <div class="flex gap-1.5">
+              ${btnHtml}
+              <button onclick="shareEntry('${item.id}')" title="複製拉票連結" class="px-2.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl text-xs font-bold">🔗</button>
+            </div>
           </div>
-        </article>
-      `).join('');
+        </div>
+      `;
     }
 
+    // 執行投票（含無痕視窗攔截、Google 帳號每日 1 票、單一裝置每日 5 票）
     async function castVote(entryId) {
       if (!currentUser) {
-        alert('請先點擊右上角「Google 登入」後再進行投票！');
+        if (confirm('投票前請先登入 Google 帳號，是否立即前往登入？')) {
+          loginWithGoogle();
+        }
         return;
       }
 
-      const now = Date.now();
-      if (now < VOTE_START || now > VOTE_END) {
-        alert('目前非投票開放時間！\n投票時間為台灣時間 2026/12/26 00:00 至 2027/01/01 23:59。');
+      const { canVote, twDateStr } = getTimeState();
+      if (!canVote) {
+        alert('目前非開放投票時間（開放時間：2026/12/26 00:00 至 2027/01/01 23:59）！');
         return;
       }
 
       // 1. 阻擋無痕 / 私密瀏覽模式
       if (await isIncognitoMode()) {
-        alert('偵測到您正在使用「無痕 / 私密瀏覽模式」，為維護投票公平性，請切換回一般瀏覽器分頁後再投票！');
+        alert('偵測到您正在使用「無痕 / 私密瀏覽模式」，請切換回一般瀏覽器視窗後再進行投票！');
         return;
       }
 
-      const today = getTaiwanDateString();
       const deviceId = await getDeviceFingerprint();
 
-      // 2. 前端預檢：單一 Google 帳號每日 1 票
-      const { data: userVotes } = await supabaseClient
+      // 2. 前端預檢：單一裝置每日最多 5 票
+      const { count: deviceCount } = await sb
         .from('votes')
-        .select('id')
-        .eq('voter_id', currentUser.id)
-        .eq('vote_date', today);
-
-      if (userVotes && userVotes.length >= 1) {
-        alert('您的 Google 帳號今日已投過 1 票囉！明日台灣時間 00:00 重置後可再次投票。');
-        return;
-      }
-
-      // 3. 前端預檢：單一裝置每日最多 5 票
-      const { data: deviceVotes } = await supabaseClient
-        .from('votes')
-        .select('id')
+        .select('id', { count: 'exact', head: true })
         .eq('device_id', deviceId)
-        .eq('vote_date', today);
+        .eq('vote_date', twDateStr);
 
-      if (deviceVotes && deviceVotes.length >= 5) {
-        alert('此裝置今日已達投票上限（單一裝置每日最多 5 票），請明日再試！');
+      if (deviceCount !== null && deviceCount >= 5) {
+        alert(`此裝置今日（${twDateStr}）已達投票上限（單一裝置每日最多 5 票），請明日再試！`);
         return;
       }
 
-      // 4. 寫入資料庫（後端 Trigger 與 Unique Constraint 會同步二次把關）
-      const { error } = await supabaseClient.from('votes').insert({
+      // 3. 寫入資料庫（資料庫同時透過 Unique Key 與 Trigger 雙重鎖定）
+      const { error } = await sb.from('votes').insert({
         voter_id: currentUser.id,
         entry_id: entryId,
-        device_id: deviceId,
-        vote_date: today
+        vote_date: twDateStr,
+        device_id: deviceId
       });
 
       if (error) {
         if (error.code === '23505') {
-          alert('您的帳號今日已完成投票，明日 00:00 可再次投票！');
+          alert(`你今天（${twDateStr}）已經投過票囉！明天再來支持吧！`);
         } else {
-          alert(error.message || '投票未成功，請稍後再試');
+          alert('投票未成功：' + error.message);
         }
         return;
       }
 
-      alert('🎉 投票成功！感謝您的應援（明日 00:00 後可再次投票）。');
-      updateQuotaBadge();
-      loadEntries();
+      votedToday = true;
+      await checkUserStatus();
+      await loadGallery();
+      document.getElementById('voteSuccessModal').classList.remove('hidden');
     }
 
-    // ================= 6. 管理員後台 (#admin) =================
-    function checkAdminHash() {
-      if (window.location.hash === '#admin' && !isAdminAuthenticated) {
-        const pwd = prompt('請輸入管理員密碼：');
-        if (pwd === 'MOUNT2027') {
-          isAdminAuthenticated = true;
-          document.getElementById('admin-panel').classList.remove('hidden');
-          renderAdminList();
-        } else if (pwd !== null) {
-          alert('密碼錯誤');
+    // 開啟上傳報名視窗
+    function openUploadModal() {
+      if (!currentUser) {
+        if (confirm('報名上傳前請先登入 Google 帳號，是否立即前往登入？')) {
+          loginWithGoogle();
         }
+        return;
       }
+
+      document.getElementById('uploadModal').classList.remove('hidden');
+
+      // 若已投稿過，直接顯示專屬拉票連結
+      if (userEntry) {
+        document.getElementById('geoCheckBox').classList.add('hidden');
+        document.getElementById('entryForm').classList.add('hidden');
+        document.getElementById('alreadySubmittedBox').classList.remove('hidden');
+
+        const statusMap = {
+          pending: '⏳ 狀態：照片審核中（工作人員確認符合 Dress Code 後即會公開顯示）',
+          approved: '✅ 狀態：已通過審核！快把下方連結傳給親友拉票吧！',
+          rejected: '❌ 狀態：未通過審核（可能未符合 Dress Code 規範）'
+        };
+        document.getElementById('myEntryStatusText').textContent = statusMap[userEntry.status] || '';
+        document.getElementById('myShareUrl').value = `${window.location.origin}${window.location.pathname}?id=${userEntry.id}`;
+        return;
+      }
+
+      const { canUpload } = getTimeState();
+      if (!canUpload) {
+        document.getElementById('geoStatusMsg').innerHTML = '⏰ 目前非現場上傳開放時間（僅限台灣時間 2026/12/26 00:00 ～ 12/27 23:59 開放）。';
+        return;
+      }
+
+      // 帶入 Google 預設名稱
+      document.getElementById('authorName').value = currentUser.user_metadata?.full_name || '';
+      checkVenueGPS();
     }
 
-    function exitAdmin() {
-      isAdminAuthenticated = false;
-      document.getElementById('admin-panel').classList.add('hidden');
-      history.replaceState(null, '', window.location.pathname);
+    // 驗證山樣子美食基地定位 (1 公里 = 1000 公尺)
+    function checkVenueGPS() {
+      const statusMsg = document.getElementById('geoStatusMsg');
+      const bypassBox = document.getElementById('staffBypassBox');
+
+      if (!navigator.geolocation) {
+        statusMsg.textContent = '⚠️ 您的裝置不支援定位功能。';
+        bypassBox.classList.remove('hidden');
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const dist = getDistanceMeters(pos.coords.latitude, pos.coords.longitude, CONFIG.VENUE_LAT, CONFIG.VENUE_LNG);
+          if (dist <= CONFIG.MAX_RADIUS_METERS) {
+            unlockEntryForm(`✅ 定位成功！您目前位於山樣子美食基地 1 公里範圍內（距離中心約 ${Math.round(dist)} 公尺）`);
+          } else {
+            statusMsg.innerHTML = `❌ 您目前距離園區約 <strong>${Math.round(dist)} 公尺</strong>，超出 1 公里投稿範圍，需在現場才能報名喔！`;
+            bypassBox.classList.remove('hidden');
+          }
+        },
+        () => {
+          statusMsg.textContent = '⚠️ 無法取得您的定位（可能未開啟權限）。';
+          bypassBox.classList.remove('hidden');
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
     }
 
-    function toggleGpsBypass() {
-      bypassGpsCheck = !bypassGpsCheck;
-      const btn = document.getElementById('btn-toggle-gps');
-      if (bypassGpsCheck) {
-        btn.textContent = 'GPS 1公里限制：已暫停（全區可投）';
-        btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300';
+    function verifyBypassCode() {
+      const code = document.getElementById('bypassInput').value.trim().toUpperCase();
+      if (code === CONFIG.STAFF_BYPASS_CODE) {
+        unlockEntryForm('✅ 現場服務台通關碼驗證成功！');
       } else {
-        btn.textContent = 'GPS 1公里限制：開啟中';
-        btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+        alert('通關碼錯誤，請向現場服務台工作人員確認！');
       }
     }
 
-    function renderAdminList() {
-      const list = document.getElementById('admin-entries-list');
-      if (allEntries.length === 0) {
-        list.innerHTML = '<p class="text-xs text-stone-500">目前尚無任何投稿紀錄。</p>';
+    function unlockEntryForm(msg) {
+      locationVerified = true;
+      document.getElementById('geoStatusMsg').innerHTML = `<span class="text-emerald-700 font-bold">${msg}</span>`;
+      document.getElementById('staffBypassBox').classList.add('hidden');
+      document.getElementById('entryForm').classList.remove('hidden');
+    }
+
+    // 圖片預覽與 Canvas 壓縮（寬度上限 1080px）
+    let compressedBlob = null;
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxW = 1080;
+          const scale = img.width > maxW ? maxW / img.width : 1;
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob((blob) => {
+            compressedBlob = blob;
+            const previewEl = document.getElementById('imagePreview');
+            previewEl.src = URL.createObjectURL(blob);
+            previewEl.classList.remove('hidden');
+          }, 'image/jpeg', 0.82);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 送出參賽作品（預設 status: 'pending'，審核通過後才顯示）
+    async function submitEntry(event) {
+      event.preventDefault();
+      if (!locationVerified || !compressedBlob) return;
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '照片上傳中，請稍候...';
+
+      try {
+        const fileName = `${currentUser.id}_${Date.now()}.jpg`;
+        const { error: uploadErr } = await sb.storage
+          .from('xmas-photos')
+          .upload(fileName, compressedBlob, { contentType: 'image/jpeg' });
+
+        if (uploadErr) throw uploadErr;
+
+        const { data: { publicUrl } } = sb.storage.from('xmas-photos').getPublicUrl(fileName);
+
+        const { error: insertErr } = await sb.from('entries').insert({
+          user_id: currentUser.id,
+          author_name: document.getElementById('authorName').value.trim(),
+          phone: document.getElementById('authorPhone').value.trim(),
+          avatar_url: currentUser.user_metadata?.avatar_url || '',
+          caption: document.getElementById('entryCaption').value.trim(),
+          image_url: publicUrl,
+          consent_marketing: document.getElementById('marketingConsent').checked,
+          status: 'pending'
+        });
+
+        if (insertErr) throw insertErr;
+
+        alert('報名成功！工作人員審核通過後就會出現在活動牆囉！');
+        await checkUserStatus();
+        openUploadModal();
+      } catch (err) {
+        alert('上傳失敗：' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '確認送出參賽';
+      }
+    }
+
+    // ==================== 簡易審核後台功能 ====================
+    async function loadAdminEntries(statusFilter) {
+      const { data, error } = await sb
+        .from('entries')
+        .select('*')
+        .eq('status', statusFilter)
+        .order('created_at', { ascending: false });
+
+      const list = document.getElementById('adminList');
+      if (error || !data || data.length === 0) {
+        list.innerHTML = `<p class="text-stone-400 text-sm col-span-2 py-8 text-center">此分類目前沒有資料</p>`;
         return;
       }
-      list.innerHTML = allEntries.map(item => `
-        <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl border border-stone-200 bg-stone-50">
-          <div class="flex items-center gap-3">
-            <img src="${escapeHtml(item.image_url)}" class="w-14 h-14 rounded-xl object-cover bg-stone-200" />
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-sm text-stone-900">${escapeHtml(item.author_name)}</span>
-                <span class="text-[11px] px-2 py-0.5 rounded-full font-bold ${item.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                  ${item.status === 'approved' ? '已上架' : '待審核'}
-                </span>
-              </div>
-              <p class="text-xs text-stone-500">電話：${escapeHtml(item.phone || '-')} ｜ 目前得票：${item.vote_count} 票</p>
+
+      list.innerHTML = data.map(item => `
+        <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex gap-3">
+          <img src="${item.image_url}" class="w-28 h-28 object-cover rounded-lg bg-stone-100 flex-shrink-0" />
+          <div class="flex-1 min-w-0 text-xs space-y-1">
+            <div class="font-bold text-sm text-stone-800">${escapeHtml(item.author_name)}</div>
+            <div class="text-red-700 font-bold">📞 電話：${escapeHtml(item.phone)}</div>
+            <div class="text-stone-500">票數：${item.votes_count || 0} 票｜授權：${item.consent_marketing ? '✅' : '❌'}</div>
+            <div class="text-stone-600 truncate">宣言：${escapeHtml(item.caption || '無')}</div>
+            <div class="pt-2 flex gap-2">
+              <button onclick="updateStatus('${item.id}', 'approved')" class="bg-emerald-600 text-white px-3 py-1.5 rounded font-bold">通過</button>
+              <button onclick="updateStatus('${item.id}', 'rejected')" class="bg-red-600 text-white px-3 py-1.5 rounded font-bold">退回</button>
             </div>
-          </div>
-          <div class="flex items-center gap-2">
-            ${item.status !== 'approved'
-              ? `<button onclick="updateEntryStatus('${item.id}', 'approved')" class="px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-bold">通過上架</button>`
-              : `<button onclick="updateEntryStatus('${item.id}', 'pending')" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-bold">設為隱藏</button>`
-            }
-            <button onclick="deleteEntry('${item.id}')" class="px-3 py-1.5 rounded-lg bg-red-100 text-red-700 text-xs font-bold">刪除</button>
           </div>
         </div>
       `).join('');
     }
 
-    async function updateEntryStatus(id, status) {
-      const { error } = await supabaseClient.from('entries').update({ status }).eq('id', id);
-      if (error) alert('更新失敗：' + error.message);
-      else loadEntries();
+    async function updateStatus(id, newStatus) {
+      const { error } = await sb.from('entries').update({ status: newStatus }).eq('id', id);
+      if (error) {
+        alert('更新失敗：' + error.message);
+      } else {
+        loadAdminEntries('pending');
+      }
     }
 
-    async function deleteEntry(id) {
-      if (!confirm('確定要永久刪除此筆投稿作品嗎？')) return;
-      const { error } = await supabaseClient.from('entries').delete().eq('id', id);
-      if (error) alert('刪除失敗：' + error.message);
-      else loadEntries();
+    function exitAdmin() {
+      window.location.hash = '';
+      window.location.reload();
     }
 
-    function exportCsv() {
-      const headers = ['編號,參賽者,聯絡電話,狀態,得票數,投稿時間'];
-      const rows = allEntries.map(e =>
-        `"${e.id}","${(e.author_name || '').replace(/"/g, '""')}","${e.phone || ''}","${e.status}","${e.vote_count}","${e.created_at}"`
-      );
-      const csvContent = '\uFEFF' + [headers, ...rows].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `山樣子聖誕穿搭名單_${getTaiwanDateString()}.csv`;
-      link.click();
+    // 工具函式
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371e3, rad = Math.PI / 180;
+      const dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    function shareEntry(id) {
+      const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+      navigator.clipboard.writeText(url).then(() => alert('已複製專屬拉票連結，快傳給親友吧！'));
+    }
+
+    function copyShareUrl() {
+      const input = document.getElementById('myShareUrl');
+      input.select();
+      navigator.clipboard.writeText(input.value).then(() => alert('已複製你的專屬拉票連結！'));
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function escapeHtml(str) {
-      return String(str || '').replace(/[&<>"']/g, m => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[m]));
+      return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
     }
 
-    // 啟動初始化
-    window.addEventListener('hashchange', checkAdminHash);
-    detectInAppBrowser();
-    initAuth();
-    loadEntries();
-    checkAdminHash();
+    init();
   </script>
 </body>
 </html>
