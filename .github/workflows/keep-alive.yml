@@ -10,4 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase
-        run: curl -s -X GET "https://busztrwndoxlltqrftuf.supabase.co/rest/v1/entries?select=id&limit=1" -H "apikey: sb_publishable_291SlLjCiXN6GF14lhjXvg_7WtT2rIc" -H "Authorization: Bearer sb_publishable_291SlLjCiXN6GF14lhjXvg_7WtT2rIc"
+        run: |
+          curl -s -X GET "https://busztrwndoxlltqrftuf.supabase.co/rest/v1/entries?select=id&limit=1" -H "apikey: sb_publishable_291SlLjCiXN6GF14lhjXvg_7WtT2rIc" -H "Authorization: Bearer sb_publishable_291SlLjCiXN6GF14lhjXvg_7WtT2rIc"
