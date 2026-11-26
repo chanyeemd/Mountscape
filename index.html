@@ -974,23 +974,5 @@
     init();
   </script>
 
-  <!-- ================= 測試專用時間與範圍覆蓋區（正式上線前把整段刪掉即可） ================= -->
-  <script>
-    // 1. 測試時間覆蓋：2026/11/26 整天開放投票與投稿（台灣時間 UTC+8）
-    CONFIG.UPLOAD_START = '2026-11-26T00:00:00+08:00';
-    CONFIG.UPLOAD_END   = '2026-11-26T23:59:59+08:00';
-    CONFIG.VOTE_START   = '2026-11-26T00:00:00+08:00';
-    CONFIG.VOTE_END     = '2026-11-26T23:59:59+08:00';
-
-    // 2. 測試地理圍欄覆蓋：嘉義市東區啟明路146號周圍 1 公里（1000 公尺）
-    CONFIG.VENUE_LAT         = 23.4815;
-    CONFIG.VENUE_LNG         = 120.4631;
-    CONFIG.MAX_RADIUS_METERS = 1000;
-
-    // 刷新測試狀態橫幅與畫面
-    if (typeof updateTimeBanner === 'function') updateTimeBanner();
-    if (typeof loadGallery === 'function') loadGallery();
-  </script>
-  <!-- ======================================================================================== -->
 </body>
 </html>
