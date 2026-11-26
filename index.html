@@ -9,9 +9,8 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
     body { font-family: 'Noto Sans TC', sans-serif; background-color: #faf7f2; }
-    .masonry-grid { column-count: 2; column-gap: 1rem; }
-    @media (min-width: 768px) { .masonry-grid { column-count: 3; column-gap: 1.25rem; } }
-    .masonry-item { break-inside: avoid; margin-bottom: 1rem; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="text-stone-800 pb-24">
@@ -22,7 +21,7 @@
       SUPABASE_URL: 'https://busztrwndoxlltqrftuf.supabase.co',
       SUPABASE_ANON_KEY: 'sb_publishable_291SlLjCiXN6GF14lhjXvg_7WtT2rIc',
       
-      // 山樣子美食基地中心點經緯度
+      // 正式場地座標（山樣子美食基地）
       VENUE_LAT: 23.4810,
       VENUE_LNG: 120.4536,
       MAX_RADIUS_METERS: 1000,       // 允許上傳半徑：1 公里（1000 公尺）
@@ -30,7 +29,13 @@
       ADMIN_PASSWORD: 'MOUNT2027',   // 審核後台登入密碼（網址加 #admin 進入）
       FB_PAGE_URL: 'https://www.facebook.com/MountScapeSquare/',
 
-      // 活動時間軸（統一以台灣時間 UTC+8 為準）
+      // Banner 輪播圖片清單（支援 2 張以上資訊）
+      BANNERS: [
+        'https://hotelday.com.tw/wp-content/uploads/2026/11/New-Project-2.png',
+        'https://hotelday.com.tw/wp-content/uploads/2026/11/New-Project-2.jpg'
+      ],
+
+      // 正式活動時間軸（統一以台灣時間 UTC+8 為準）
       UPLOAD_START: '2026-12-26T00:00:00+08:00',
       UPLOAD_END:   '2026-12-27T23:59:59+08:00',
       VOTE_START:   '2026-12-26T00:00:00+08:00',
@@ -67,15 +72,22 @@
   <!-- 主內容容器 -->
   <main class="max-w-5xl mx-auto px-4 pt-4">
 
-    <!-- 活動主視覺 Banner (建議尺寸：1200 x 600 px / 2:1 比例，檔名 banner.jpg) -->
-    <div class="w-full aspect-[2/1] bg-gradient-to-r from-red-900 via-red-800 to-emerald-900 rounded-2xl overflow-hidden shadow-lg mb-4 relative flex items-center justify-center">
-      <img src="banner.jpg" alt="山樣子美食基地聖誕市集 Dress Code" class="w-full h-full object-cover"
-           onerror="this.style.display='none'; document.getElementById('bannerFallback').classList.remove('hidden');" />
-      <div id="bannerFallback" class="hidden text-center text-white p-6">
-        <p class="text-xs tracking-widest uppercase text-amber-300 mb-1">MOUNT SCAPE SQUARE CHRISTMAS</p>
-        <h1 class="text-2xl sm:text-4xl font-black mb-2">聖誕市集 Dress Code 穿搭大賞</h1>
-        <p class="text-xs sm:text-sm text-stone-200">12/26 - 12/27 現場拍照上傳｜投票至 2027/1/1 23:59 止</p>
-      </div>
+    <!-- 活動主視覺輪播 Banner（支援滑動切換多張資訊，2:1 比例） -->
+    <div class="w-full aspect-[2/1] bg-gradient-to-r from-red-900 via-red-800 to-emerald-900 rounded-2xl overflow-hidden shadow-lg mb-4 relative group">
+      <div id="bannerTrack" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"></div>
+
+      <!-- 左右切換按鈕（電腦版滑鼠移入顯示） -->
+      <button type="button" onclick="moveBanner(-1)" aria-label="上一張"
+              class="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/65 text-white absolute left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition">
+        ‹
+      </button>
+      <button type="button" onclick="moveBanner(1)" aria-label="下一張"
+              class="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/65 text-white absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition">
+        ›
+      </button>
+
+      <!-- 底部圓點指示器 -->
+      <div id="bannerDots" class="absolute bottom-2.5 inset-x-0 flex justify-center gap-1.5 z-10"></div>
     </div>
 
     <!-- 活動狀態資訊條 -->
@@ -86,19 +98,19 @@
       </div>
     </div>
 
-    <!-- 功能切換標籤（前台瀑布流 / 審核後台） -->
+    <!-- 功能切換標籤（前台投票牆 / 審核後台） -->
     <div id="adminBanner" class="hidden bg-amber-100 border border-amber-400 text-amber-900 p-3 rounded-xl mb-4 flex items-center justify-between">
       <span class="font-bold text-sm">🛠️ 管理員審核模式已開啟</span>
       <button onclick="exitAdmin()" class="text-xs bg-amber-800 text-white px-3 py-1 rounded-lg">返回前台</button>
     </div>
 
-    <!-- ==================== 前台視圖：瀑布流投票牆 ==================== -->
+    <!-- ==================== 前台視圖：整齊對齊網格投票牆 ==================== -->
     <section id="gallerySection">
       <!-- 專屬拉票置頂區塊（當網址帶有 ?id=xxx 時顯示） -->
       <div id="featuredEntryContainer" class="hidden mb-6"></div>
 
-      <!-- 瀑布流列表 -->
-      <div id="entriesGrid" class="masonry-grid"></div>
+      <!-- 固定比例切齊網格列表 -->
+      <div id="entriesGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5"></div>
       <div id="emptyState" class="hidden text-center py-16 text-stone-400">
         <p class="text-4xl mb-2">🎅</p>
         <p class="font-medium">目前還沒有通過審核的穿搭照片，快來搶頭香！</p>
@@ -157,7 +169,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-stone-700 mb-1">穿搭宣言 / 聖誕祝福（選填）</label>
-          <input type="text" id="entryCaption" maxlength="50" placeholder="寫一句拉票宣言吧！" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+          <input type="text" id="entryCaption" maxlength="80" placeholder="寫一句拉票宣言吧！" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
         </div>
         <div>
           <label class="block text-xs font-bold text-stone-700 mb-1">選擇現場自拍照（需符合 Dress Code）*</label>
@@ -184,9 +196,11 @@
         <h3 class="font-bold text-base mb-1">你已完成報名投稿！</h3>
         <p id="myEntryStatusText" class="text-xs text-stone-600 mb-4"></p>
         <div class="bg-stone-100 p-3 rounded-xl mb-3">
-          <p class="text-xs text-stone-500 mb-1">你的專屬拉票連結（親友點開會自動置頂）：</p>
-          <input type="text" id="myShareUrl" readonly class="w-full bg-white border border-stone-300 rounded px-2 py-1.5 text-xs text-center font-mono mb-2" />
-          <button onclick="copyShareUrl()" class="w-full bg-red-700 text-white text-xs font-bold py-2 rounded-lg">複製專屬拉票連結</button>
+          <p class="text-xs text-stone-500 mb-1.5">你的專屬拉票文案與短網址（點擊直接複製轉貼）：</p>
+          <textarea id="myShareText" readonly rows="4" class="w-full bg-white border border-stone-300 rounded-lg p-2 text-xs text-stone-700 leading-relaxed mb-2 resize-none"></textarea>
+          <button onclick="copyMyShareText()" class="w-full bg-red-700 hover:bg-red-800 text-white text-xs font-bold py-2.5 rounded-lg transition">
+            📋 複製專屬拉票文案與短網址
+          </button>
         </div>
       </div>
     </div>
@@ -198,7 +212,7 @@
       <div class="text-5xl mb-3">🎁</div>
       <h3 class="text-xl font-black text-stone-800 mb-2">投票成功！感謝你的支持</h3>
       <p class="text-sm text-stone-600 leading-relaxed mb-5">
-        提醒你：<strong>12/26 至 1/1 23:59 期間，每天都能登入投 1 票！</strong><br>
+        提醒你：<strong>12/26 至 1/1 23:59 期間，每天都能登入投 1 票，並享住宿券抽獎資格！</strong><br>
         歡迎追蹤「山樣子美食基地」官方粉絲專頁，掌握市集最新優惠與開獎公告！
       </p>
       <a href="https://www.facebook.com/MountScapeSquare/" target="_blank" rel="noopener noreferrer"
@@ -211,6 +225,29 @@
     </div>
   </div>
 
+  <!-- ==================== 彈窗 3：作品詳情檢視彈窗（查看完整原圖與全文宣言） ==================== -->
+  <div id="detailModal" onclick="if(event.target===this) closeModal('detailModal')" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl relative my-6">
+      <button onclick="closeModal('detailModal')" class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/55 hover:bg-black/75 text-white flex items-center justify-center text-base font-bold">✕</button>
+      <div class="bg-stone-900 flex items-center justify-center max-h-[62vh] overflow-hidden">
+        <img id="detailImg" src="" alt="" class="w-full max-h-[62vh] object-contain" />
+      </div>
+      <div class="p-5">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2 min-w-0">
+            <img id="detailAvatar" src="" class="hidden w-7 h-7 rounded-full border border-stone-200 flex-shrink-0" />
+            <span id="detailAuthor" class="font-black text-base text-stone-900 truncate"></span>
+          </div>
+          <span id="detailVotes" class="text-sm font-black text-red-700 bg-red-50 px-3 py-1 rounded-full flex-shrink-0"></span>
+        </div>
+        <div class="bg-stone-50 border border-stone-200/80 rounded-xl p-3.5 mb-4 max-h-36 overflow-y-auto">
+          <p id="detailCaption" class="text-sm text-stone-700 leading-relaxed whitespace-pre-line"></p>
+        </div>
+        <div id="detailActions" class="flex gap-2"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
     let currentUser = null;
@@ -218,6 +255,7 @@
     let votedToday = false;
     let locationVerified = false;
     let isAdmin = false;
+    let cachedEntries = [];
 
     // 1. 偵測 LINE / FB / IG 內建瀏覽器
     (function checkInAppBrowser() {
@@ -227,14 +265,113 @@
       }
     })();
 
-    // 無痕 / 私密瀏覽模式偵測（不會誤殺一般正常視窗）
+    // ==================== Banner 輪播控制 ====================
+    let bannerIndex = 0;
+    let bannerTimer = null;
+
+    function initBannerCarousel() {
+      const track = document.getElementById('bannerTrack');
+      const dots = document.getElementById('bannerDots');
+      const list = CONFIG.BANNERS || [];
+
+      if (list.length === 0) return;
+
+      track.innerHTML = list.map((url, i) => `
+        <div class="w-full h-full flex-shrink-0 snap-center relative">
+          <img src="${url}" alt="活動主視覺 ${i + 1}" class="w-full h-full object-cover" />
+        </div>
+      `).join('');
+
+      if (list.length > 1) {
+        dots.innerHTML = list.map((_, i) => `
+          <button type="button" onclick="goBanner(${i})" aria-label="第 ${i + 1} 張"
+                  class="banner-dot w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-white w-5' : 'bg-white/50'}"></button>
+        `).join('');
+
+        track.addEventListener('scroll', () => {
+          const idx = Math.round(track.scrollLeft / track.clientWidth);
+          if (idx !== bannerIndex && idx >= 0 && idx < list.length) {
+            bannerIndex = idx;
+            updateBannerDots();
+          }
+        }, { passive: true });
+
+        startBannerAutoPlay();
+      }
+    }
+
+    function updateBannerDots() {
+      document.querySelectorAll('.banner-dot').forEach((dot, i) => {
+        dot.className = i === bannerIndex
+          ? 'banner-dot w-5 h-2 rounded-full bg-white transition-all'
+          : 'banner-dot w-2 h-2 rounded-full bg-white/50 transition-all';
+      });
+    }
+
+    function goBanner(idx) {
+      const track = document.getElementById('bannerTrack');
+      const total = (CONFIG.BANNERS || []).length;
+      if (!total) return;
+      bannerIndex = (idx + total) % total;
+      track.scrollTo({ left: bannerIndex * track.clientWidth, behavior: 'smooth' });
+      updateBannerDots();
+      startBannerAutoPlay();
+    }
+
+    function moveBanner(step) {
+      goBanner(bannerIndex + step);
+    }
+
+    function startBannerAutoPlay() {
+      if (bannerTimer) clearInterval(bannerTimer);
+      if ((CONFIG.BANNERS || []).length <= 1) return;
+      bannerTimer = setInterval(() => {
+        const track = document.getElementById('bannerTrack');
+        const total = CONFIG.BANNERS.length;
+        bannerIndex = (bannerIndex + 1) % total;
+        track.scrollTo({ left: bannerIndex * track.clientWidth, behavior: 'smooth' });
+        updateBannerDots();
+      }, 4500);
+    }
+
+    // ==================== 兩層 TinyURL 短網址產生器（失敗自動無縫保底） ====================
+    async function getShortShareUrl(entryId) {
+      const longUrl = `${window.location.origin}${window.location.pathname}?id=${entryId}`;
+      const cacheKey = `ms_short_url_${entryId}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return cached;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 最多等待 2 秒
+        const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const shortUrl = (await res.text()).trim();
+          if (shortUrl.startsWith('https://tinyurl.com/')) {
+            localStorage.setItem(cacheKey, shortUrl);
+            return shortUrl;
+          }
+        }
+      } catch (e) {
+        // 第一層逾時或異常時靜默進入第二層無縫保底
+      }
+      return longUrl;
+    }
+
+    function buildShareMessage(url) {
+      return `我在山樣子美食基地參加Dress Code穿搭大賞\n投票即享住宿券抽獎資格，快來幫我投票！\n${url}`;
+    }
+
+    // ==================== 無痕偵測與裝置指紋 ====================
     async function isIncognitoMode() {
       try {
         if ('storage' in navigator && 'estimate' in navigator.storage) {
           const { quota } = await navigator.storage.estimate();
-          if (quota && quota < 120 * 1024 * 1024) {
-            return true;
-          }
+          if (quota && quota < 120 * 1024 * 1024) return true;
         }
       } catch (e) {
         return false;
@@ -242,7 +379,6 @@
       return false;
     }
 
-    // 裝置指紋產生器（桌機/筆電採跨瀏覽器硬體特徵；手機/平板採本地持久標記＋螢幕特徵避免同型號 iPhone 互撞）
     async function getDeviceFingerprint() {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       let canvasHash = '';
@@ -304,6 +440,7 @@
 
     // 初始化頁面
     async function init() {
+      initBannerCarousel();
       updateTimeBanner();
 
       // 檢查網址是否為 #admin
@@ -382,7 +519,6 @@
     async function checkUserStatus() {
       const { twDateStr } = getTimeState();
 
-      // 1. 查是否已投稿
       const { data: entry } = await sb
         .from('entries')
         .select('*')
@@ -394,7 +530,6 @@
         document.getElementById('uploadBtnLabel').textContent = '查看我的拉票連結';
       }
 
-      // 2. 查今日是否已投票
       const { data: vote } = await sb
         .from('votes')
         .select('id')
@@ -413,7 +548,7 @@
       updateTimeBanner();
     }
 
-    // 載入瀑布流作品（僅顯示管理員審核通過 approved 的作品）
+    // 載入對齊網格作品（僅顯示審核通過 approved 的作品）
     async function loadGallery() {
       const state = getTimeState();
       const urlParams = new URLSearchParams(window.location.search);
@@ -430,6 +565,7 @@
         return;
       }
 
+      cachedEntries = entries;
       const grid = document.getElementById('entriesGrid');
       const featuredContainer = document.getElementById('featuredEntryContainer');
       grid.innerHTML = '';
@@ -446,7 +582,7 @@
     }
 
     function buildCardHtml(item, state, isFeatured) {
-      const voteDisplay = `<span class="text-sm font-black text-red-700">${item.votes_count || 0} <span class="text-xs font-normal text-stone-500">票</span></span>`;
+      const voteDisplay = `<span class="text-xs sm:text-sm font-black text-red-700 flex-shrink-0">${item.votes_count || 0} <span class="text-[11px] font-normal text-stone-500">票</span></span>`;
 
       let btnHtml = '';
       if (!state.canVote) {
@@ -457,26 +593,77 @@
         btnHtml = `<button onclick="castVote('${item.id}')" class="w-full bg-red-700 hover:bg-red-800 text-white text-xs sm:text-sm font-bold py-2 rounded-xl shadow-sm transition active:scale-95">❤️ 投他一票</button>`;
       }
 
+      const captionText = item.caption ? escapeHtml(item.caption) : '點擊照片查看完整穿搭';
+
       return `
-        <div class="${isFeatured ? 'max-w-md mx-auto ring-4 ring-amber-400' : 'masonry-item'} bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 flex flex-col">
+        <div class="${isFeatured ? 'max-w-sm mx-auto ring-4 ring-amber-400' : 'h-full'} bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 flex flex-col">
           ${isFeatured ? '<div class="bg-amber-400 text-amber-950 text-xs font-black text-center py-1">⭐ 親友推薦專屬拉票作品 ⭐</div>' : ''}
-          <img src="${item.image_url}" alt="${escapeHtml(item.author_name)}" loading="lazy" class="w-full h-auto object-cover bg-stone-100" />
-          <div class="p-3.5">
-            <div class="flex items-center justify-between gap-2 mb-1.5">
-              <div class="flex items-center gap-1.5 min-w-0">
-                ${item.avatar_url ? `<img src="${item.avatar_url}" class="w-5 h-5 rounded-full flex-shrink-0">` : ''}
-                <span class="font-bold text-sm truncate">${escapeHtml(item.author_name)}</span>
+          <!-- 固定 3:4 直式圖片框，點擊可開啟詳情彈窗 -->
+          <div onclick="openDetailModal('${item.id}')" class="w-full aspect-[3/4] bg-stone-100 overflow-hidden cursor-pointer relative group">
+            <img src="${item.image_url}" alt="${escapeHtml(item.author_name)}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+            <span class="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">🔍 查看全圖</span>
+          </div>
+          <!-- 固定高度文字區，確保所有卡片上下左右完全切齊 -->
+          <div class="p-3 sm:p-3.5 flex-1 flex flex-col justify-between">
+            <div onclick="openDetailModal('${item.id}')" class="cursor-pointer mb-2.5">
+              <div class="flex items-center justify-between gap-1.5 mb-1">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  ${item.avatar_url ? `<img src="${item.avatar_url}" class="w-5 h-5 rounded-full flex-shrink-0">` : ''}
+                  <span class="font-bold text-xs sm:text-sm truncate">${escapeHtml(item.author_name)}</span>
+                </div>
+                ${voteDisplay}
               </div>
-              ${voteDisplay}
+              <!-- 單行固定高度宣言（無留言也保留等高行距，超過自動省略） -->
+              <p class="text-xs text-stone-500 truncate h-4 leading-4 ${item.caption ? '' : 'opacity-60'}">${captionText}</p>
             </div>
-            ${item.caption ? `<p class="text-xs text-stone-600 mb-3 leading-relaxed">${escapeHtml(item.caption)}</p>` : '<div class="mb-2"></div>'}
             <div class="flex gap-1.5">
               ${btnHtml}
-              <button onclick="shareEntry('${item.id}')" title="複製拉票連結" class="px-2.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl text-xs font-bold">🔗</button>
+              <button onclick="shareEntry('${item.id}', this)" title="複製拉票文案與短網址" class="px-2.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl text-xs font-bold flex-shrink-0">🔗</button>
             </div>
           </div>
         </div>
       `;
+    }
+
+    // 開啟作品詳情檢視彈窗（查看完整原圖與全文宣言）
+    function openDetailModal(entryId) {
+      const item = cachedEntries.find(e => e.id === entryId);
+      if (!item) return;
+
+      const state = getTimeState();
+      document.getElementById('detailImg').src = item.image_url;
+      document.getElementById('detailAuthor').textContent = item.author_name || '參賽者';
+      document.getElementById('detailVotes').textContent = `${item.votes_count || 0} 票`;
+
+      const avatarEl = document.getElementById('detailAvatar');
+      if (item.avatar_url) {
+        avatarEl.src = item.avatar_url;
+        avatarEl.classList.remove('hidden');
+      } else {
+        avatarEl.classList.add('hidden');
+      }
+
+      document.getElementById('detailCaption').textContent = item.caption
+        ? item.caption
+        : '（參賽者未填寫文字宣言，歡迎直接投票支持！）';
+
+      let voteBtn = '';
+      if (!state.canVote) {
+        voteBtn = `<button disabled class="flex-1 bg-stone-200 text-stone-500 text-sm font-bold py-2.5 rounded-xl">非投票時間</button>`;
+      } else if (votedToday) {
+        voteBtn = `<button disabled class="flex-1 bg-stone-200 text-stone-500 text-sm font-bold py-2.5 rounded-xl">今日已投票</button>`;
+      } else {
+        voteBtn = `<button onclick="closeModal('detailModal'); castVote('${item.id}')" class="flex-1 bg-red-700 hover:bg-red-800 text-white text-sm font-bold py-2.5 rounded-xl shadow transition">❤️ 投他一票</button>`;
+      }
+
+      document.getElementById('detailActions').innerHTML = `
+        ${voteBtn}
+        <button onclick="shareEntry('${item.id}', this)" class="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-sm font-bold whitespace-nowrap">
+          🔗 複製拉票文案
+        </button>
+      `;
+
+      document.getElementById('detailModal').classList.remove('hidden');
     }
 
     // 執行投票（含無痕視窗攔截、Google 帳號每日 1 票、單一裝置每日 5 票）
@@ -494,7 +681,6 @@
         return;
       }
 
-      // 1. 阻擋無痕 / 私密瀏覽模式
       if (await isIncognitoMode()) {
         alert('偵測到您正在使用「無痕 / 私密瀏覽模式」，請切換回一般瀏覽器視窗後再進行投票！');
         return;
@@ -502,7 +688,6 @@
 
       const deviceId = await getDeviceFingerprint();
 
-      // 2. 前端預檢：單一裝置每日最多 5 票
       const { count: deviceCount } = await sb
         .from('votes')
         .select('id', { count: 'exact', head: true })
@@ -514,7 +699,6 @@
         return;
       }
 
-      // 3. 寫入資料庫（資料庫同時透過 Unique Key 與 Trigger 雙重鎖定）
       const { error } = await sb.from('votes').insert({
         voter_id: currentUser.id,
         entry_id: entryId,
@@ -538,7 +722,7 @@
     }
 
     // 開啟上傳報名視窗
-    function openUploadModal() {
+    async function openUploadModal() {
       if (!currentUser) {
         if (confirm('報名上傳前請先登入 Google 帳號，是否立即前往登入？')) {
           loginWithGoogle();
@@ -548,7 +732,6 @@
 
       document.getElementById('uploadModal').classList.remove('hidden');
 
-      // 若已投稿過，直接顯示專屬拉票連結
       if (userEntry) {
         document.getElementById('geoCheckBox').classList.add('hidden');
         document.getElementById('entryForm').classList.add('hidden');
@@ -556,11 +739,15 @@
 
         const statusMap = {
           pending: '⏳ 狀態：照片審核中（工作人員確認符合 Dress Code 後即會公開顯示）',
-          approved: '✅ 狀態：已通過審核！快把下方連結傳給親友拉票吧！',
+          approved: '✅ 狀態：已通過審核！快把下方文案傳給親友拉票吧！',
           rejected: '❌ 狀態：未通過審核（可能未符合 Dress Code 規範）'
         };
         document.getElementById('myEntryStatusText').textContent = statusMap[userEntry.status] || '';
-        document.getElementById('myShareUrl').value = `${window.location.origin}${window.location.pathname}?id=${userEntry.id}`;
+
+        const shareBox = document.getElementById('myShareText');
+        shareBox.value = '⏳ 正在產生專屬短網址...';
+        const shortUrl = await getShortShareUrl(userEntry.id);
+        shareBox.value = buildShareMessage(shortUrl);
         return;
       }
 
@@ -570,12 +757,11 @@
         return;
       }
 
-      // 帶入 Google 預設名稱
       document.getElementById('authorName').value = currentUser.user_metadata?.full_name || '';
       checkVenueGPS();
     }
 
-    // 驗證山樣子美食基地定位 (1 公里 = 1000 公尺)
+    // 驗證定位 (1 公里 = 1000 公尺)
     function checkVenueGPS() {
       const statusMsg = document.getElementById('geoStatusMsg');
       const bypassBox = document.getElementById('staffBypassBox');
@@ -590,9 +776,9 @@
         (pos) => {
           const dist = getDistanceMeters(pos.coords.latitude, pos.coords.longitude, CONFIG.VENUE_LAT, CONFIG.VENUE_LNG);
           if (dist <= CONFIG.MAX_RADIUS_METERS) {
-            unlockEntryForm(`✅ 定位成功！您目前位於山樣子美食基地 1 公里範圍內（距離中心約 ${Math.round(dist)} 公尺）`);
+            unlockEntryForm(`✅ 定位成功！您目前位於活動範圍內（距離中心約 ${Math.round(dist)} 公尺）`);
           } else {
-            statusMsg.innerHTML = `❌ 您目前距離園區約 <strong>${Math.round(dist)} 公尺</strong>，超出 1 公里投稿範圍，需在現場才能報名喔！`;
+            statusMsg.innerHTML = `❌ 您目前距離中心約 <strong>${Math.round(dist)} 公尺</strong>，超出 1 公里投稿範圍，需在現場才能報名喔！`;
             bypassBox.classList.remove('hidden');
           }
         },
@@ -738,7 +924,7 @@
       window.location.reload();
     }
 
-    // 工具函式
+    // ==================== 分享與工具函式 ====================
     function getDistanceMeters(lat1, lon1, lat2, lon2) {
       const R = 6371e3, rad = Math.PI / 180;
       const dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
@@ -746,15 +932,38 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    function shareEntry(id) {
-      const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
-      navigator.clipboard.writeText(url).then(() => alert('已複製專屬拉票連結，快傳給親友吧！'));
+    async function shareEntry(id, btnEl) {
+      const origText = btnEl ? btnEl.textContent : '';
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.textContent = '⏳';
+      }
+      try {
+        const shortUrl = await getShortShareUrl(id);
+        const message = buildShareMessage(shortUrl);
+        await navigator.clipboard.writeText(message);
+        alert('已複製拉票文案與短網址，快貼上 LINE 傳給親友吧！\n\n' + message);
+      } catch (e) {
+        const fallbackMsg = buildShareMessage(`${window.location.origin}${window.location.pathname}?id=${id}`);
+        prompt('請長按全選複製以下拉票文案：', fallbackMsg);
+      } finally {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.textContent = origText;
+        }
+      }
     }
 
-    function copyShareUrl() {
-      const input = document.getElementById('myShareUrl');
-      input.select();
-      navigator.clipboard.writeText(input.value).then(() => alert('已複製你的專屬拉票連結！'));
+    async function copyMyShareText() {
+      const box = document.getElementById('myShareText');
+      try {
+        await navigator.clipboard.writeText(box.value);
+        alert('已複製專屬拉票文案與短網址，快貼給親友拉票吧！');
+      } catch (e) {
+        box.select();
+        document.execCommand('copy');
+        alert('已複製專屬拉票文案與短網址！');
+      }
     }
 
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -765,24 +974,23 @@
     init();
   </script>
 
-  <!-- ================= 測試專用時間與範圍覆蓋區（正式上線前整段刪除即可） ================= -->
-<script>
-  // 1. 測試時間覆蓋：2026/11/26 整天開放投稿與投票（台灣時間 UTC+8）
-  CONFIG.UPLOAD_START = '2026-11-26T00:00:00+08:00';
-  CONFIG.UPLOAD_END   = '2026-11-26T23:59:59+08:00';
-  CONFIG.VOTE_START   = '2026-11-26T00:00:00+08:00';
-  CONFIG.VOTE_END     = '2026-11-26T23:59:59+08:00';
+  <!-- ================= 測試專用時間與範圍覆蓋區（正式上線前把整段刪掉即可） ================= -->
+  <script>
+    // 1. 測試時間覆蓋：2026/11/26 整天開放投票與投稿（台灣時間 UTC+8）
+    CONFIG.UPLOAD_START = '2026-11-26T00:00:00+08:00';
+    CONFIG.UPLOAD_END   = '2026-11-26T23:59:59+08:00';
+    CONFIG.VOTE_START   = '2026-11-26T00:00:00+08:00';
+    CONFIG.VOTE_END     = '2026-11-26T23:59:59+08:00';
 
-  // 2. 測試地理圍欄覆蓋：嘉義市東區啟明路146號，半徑 1 公里（1000 公尺）
-  CONFIG.VENUE_LAT         = 23.4815;
-  CONFIG.VENUE_LNG         = 120.4631;
-  CONFIG.MAX_RADIUS_METERS = 1000;
+    // 2. 測試地理圍欄覆蓋：嘉義市東區啟明路146號周圍 1 公里（1000 公尺）
+    CONFIG.VENUE_LAT         = 23.4815;
+    CONFIG.VENUE_LNG         = 120.4631;
+    CONFIG.MAX_RADIUS_METERS = 1000;
 
-  // 重新刷新狀態橫幅與畫面按鈕
-  if (typeof updateTimeBanner === 'function') updateTimeBanner();
-  if (typeof loadGallery === 'function') loadGallery();
-</script>
-<!-- ======================================================================================== -->
-  
+    // 刷新測試狀態橫幅與畫面
+    if (typeof updateTimeBanner === 'function') updateTimeBanner();
+    if (typeof loadGallery === 'function') loadGallery();
+  </script>
+  <!-- ======================================================================================== -->
 </body>
 </html>
