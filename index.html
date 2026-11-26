@@ -21,7 +21,7 @@
       SUPABASE_URL: 'https://busztrwndoxlltqrftuf.supabase.co',
       SUPABASE_ANON_KEY: 'sb_publishable_291SlLjCiXN6GF14lhjXvg_7WtT2rIc',
       
-      // 正式場地座標（山樣子美食基地）
+      // 山樣子美食基地座標（嘉義市東區大雅路一段730號）
       VENUE_LAT: 23.4810,
       VENUE_LNG: 120.4536,
       MAX_RADIUS_METERS: 1000,       // 允許上傳半徑：1 公里（1000 公尺）
@@ -29,16 +29,16 @@
       ADMIN_PASSWORD: 'MOUNT2027',   // 審核後台登入密碼（網址加 #admin 進入）
       FB_PAGE_URL: 'https://www.facebook.com/MountScapeSquare/',
 
-      // Banner 輪播圖片清單（支援 2 張以上資訊）
+      // Banner 輪播圖片清單
       BANNERS: [
         'https://hotelday.com.tw/wp-content/uploads/2026/11/New-Project-2.png',
         'https://hotelday.com.tw/wp-content/uploads/2026/11/New-Project-2.jpg'
       ],
 
-      // 正式活動時間軸（統一以台灣時間 UTC+8 為準）
-      UPLOAD_START: '2026-12-26T00:00:00+08:00',
+      // 活動時間軸（12/24 00:00 開放以便最後上班日測試，統一以台灣時間 UTC+8 為準）
+      UPLOAD_START: '2026-12-24T00:00:00+08:00',
       UPLOAD_END:   '2026-12-27T23:59:59+08:00',
-      VOTE_START:   '2026-12-26T00:00:00+08:00',
+      VOTE_START:   '2026-12-24T00:00:00+08:00',
       VOTE_END:     '2027-01-01T23:59:59+08:00'
     };
   </script>
@@ -58,7 +58,7 @@
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
       <div class="font-black tracking-wide text-base sm:text-lg flex items-center gap-2">
         <span>🎄</span>
-        <span>山樣子美食基地｜聖誕Dress Code穿搭大賞</span>
+        <span>山樣子美食基地｜聖誕派對</span>
       </div>
       <div id="authArea">
         <button onclick="loginWithGoogle()" class="bg-white hover:bg-stone-100 text-stone-800 text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-full shadow flex items-center gap-1.5 transition">
@@ -212,7 +212,7 @@
       <div class="text-5xl mb-3">🎁</div>
       <h3 class="text-xl font-black text-stone-800 mb-2">投票成功！感謝你的支持</h3>
       <p class="text-sm text-stone-600 leading-relaxed mb-5">
-        提醒你：<strong>12/26 至 1/1 23:59 期間，每天都能登入投 1 票，並享住宿券抽獎資格！</strong><br>
+        提醒你：<strong>活動期間至 2027/1/1 23:59 止，每天都能登入投 1 票，投越多天住宿券中獎機率越高！</strong><br>
         歡迎追蹤「山樣子美食基地」官方粉絲專頁，掌握市集最新優惠與開獎公告！
       </p>
       <a href="https://www.facebook.com/MountScapeSquare/" target="_blank" rel="noopener noreferrer"
@@ -343,7 +343,7 @@
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 最多等待 2 秒
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
         const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`, {
           signal: controller.signal
         });
@@ -477,9 +477,9 @@
       const uploadBtnLabel = document.getElementById('uploadBtnLabel');
 
       if (state.beforeStart) {
-        statusEl.innerHTML = '⏳ 活動將於 <strong>2026/12/26 00:00</strong> 正式開跑，敬請期待！';
+        statusEl.innerHTML = '⏳ <strong>聖誕市集 Dress Code 穿搭大賞</strong>即將正式開跑，敬請期待！';
       } else if (state.canUpload) {
-        statusEl.innerHTML = '🔥 <strong>市集現場報名 & 投票火熱進行中！</strong>（投稿至 12/27 23:59 止）';
+        statusEl.innerHTML = '🔥 <strong>聖誕穿搭大賞火熱進行中！</strong>（現場投稿至 12/27 23:59 止）';
       } else if (state.canVote) {
         statusEl.innerHTML = '📣 <strong>線上拉票投票火熱進行中！</strong>（投票至 2027/1/1 23:59 截止）';
         uploadBtnLabel.textContent = userEntry ? '查看我的參賽與拉票連結' : '報名已截止（僅開放投票）';
@@ -677,7 +677,7 @@
 
       const { canVote, twDateStr } = getTimeState();
       if (!canVote) {
-        alert('目前非開放投票時間（開放時間：2026/12/26 00:00 至 2027/01/01 23:59）！');
+        alert('目前非開放投票時間！');
         return;
       }
 
@@ -753,7 +753,7 @@
 
       const { canUpload } = getTimeState();
       if (!canUpload) {
-        document.getElementById('geoStatusMsg').innerHTML = '⏰ 目前非現場上傳開放時間（僅限台灣時間 2026/12/26 00:00 ～ 12/27 23:59 開放）。';
+        document.getElementById('geoStatusMsg').innerHTML = '⏰ 目前非現場上傳開放時間（僅限台灣時間至 2026/12/27 23:59 止）。';
         return;
       }
 
@@ -761,7 +761,7 @@
       checkVenueGPS();
     }
 
-    // 驗證定位 (1 公里 = 1000 公尺)
+    // 驗證山樣子美食基地定位 (1 公里 = 1000 公尺)
     function checkVenueGPS() {
       const statusMsg = document.getElementById('geoStatusMsg');
       const bypassBox = document.getElementById('staffBypassBox');
@@ -776,9 +776,9 @@
         (pos) => {
           const dist = getDistanceMeters(pos.coords.latitude, pos.coords.longitude, CONFIG.VENUE_LAT, CONFIG.VENUE_LNG);
           if (dist <= CONFIG.MAX_RADIUS_METERS) {
-            unlockEntryForm(`✅ 定位成功！您目前位於活動範圍內（距離中心約 ${Math.round(dist)} 公尺）`);
+            unlockEntryForm(`✅ 定位成功！您目前位於山樣子美食基地 1 公里範圍內（距離中心約 ${Math.round(dist)} 公尺）`);
           } else {
-            statusMsg.innerHTML = `❌ 您目前距離中心約 <strong>${Math.round(dist)} 公尺</strong>，超出 1 公里投稿範圍，需在現場才能報名喔！`;
+            statusMsg.innerHTML = `❌ 您目前距離園區約 <strong>${Math.round(dist)} 公尺</strong>，超出 1 公里投稿範圍，需在現場才能報名喔！`;
             bypassBox.classList.remove('hidden');
           }
         },
@@ -973,6 +973,5 @@
 
     init();
   </script>
-
 </body>
 </html>
